@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOVA • HR MASTERMIND 2026 v2.0</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #0ea5e9;
+            --accent: #10b981;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        body {
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top left, #1e1b4b, #0f172a);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .hero-title {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            background: linear-gradient(90deg, #818cf8, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+            letter-spacing: -1px;
+        }
+
+        .badge {
+            background: rgba(99, 102, 241, 0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: 1.8fr 1.2fr;
+            gap: 25px;
+            padding: 0 20px 50px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        /* Input Styles */
+        .input-group { margin-bottom: 20px; }
+        label { color: var(--text-dim); font-size: 13px; margin-bottom: 8px; display: block; }
+        input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+input:focus { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
+
+        .btn-glow {
+            width: 100%;
+            padding: 16px;
+            border-radius: 15px;
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .btn-glow:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        /* Insight Terminal */
+        #insight-terminal {
+            margin-top: 25px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(6, 78, 59, 0.15));
+            border-left: 4px solid var(--accent);
+            border-radius: 15px;
+            padding: 20px;
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .insight-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent);
+            font-weight: 800;
+            margin-bottom: 12px;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .insight-content { font-size: 14px; line-height: 1.6; color: #e2e8f0; min-height: 50px; }
+
+        .metric-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 8px; overflow: hidden; }
+        .metric-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1.5s cubic-bezier(0.1, 0.5, 0.5, 1); }
+        .metric-item { margin-top: 15px; }
+        .metric-label { font-size: 12px; color: var(--text-dim); display: flex; justify-content: space-between; }
+
+        /* Stats Row */
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 18px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+        }
+
+        .stat-box i { font-size: 20px; color: var(--secondary); margin-bottom: 8px; }
+        .stat-box span { display: block; font-size: 18px; font-weight: 800; }
+
+        /* AI Chat */
+        .chat-container { display: flex; flex-direction: column; height: 550px; }
+        .messages { flex: 1; overflow-y: auto; padding-right: 5px; margin-bottom: 15px; }
+        .bubble { padding: 12px 16px; border-radius: 18px; margin-bottom: 10px; max-width: 85%; font-size: 13.5px; line-height: 1.5; }
+.bot { background: rgba(255,255,255,0.07); color: var(--text-main); border-bottom-left-radius: 4px; }
+        .user { background: var(--primary); color: white; margin-left: auto; border-bottom-right-radius: 4px; }
+
+        /* Tags */
+        .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+        .tag { background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 8px; font-size: 12px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--glass-border); }
+
+        #clock { font-family: monospace; font-size: 16px; color: var(--accent); margin-top: 10px; font-weight: 600; }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="badge">NOVA TEAM • PREDICTIVE ANALYTICS</div>
+    <h1 class="hero-title">HR MASTERMIND 2026</h1>
+    <div id="clock">00:00:00</div>
+</header>
+
+<div class="container">
+    <div class="card">
+        <h3 style="margin-top:0"><i class="fa-solid fa-calculator" style="color:var(--secondary)"></i> PHÂN TÍCH TÀI CHÍNH</h3>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px">
+            <div class="input-group">
+                <label>Lương tháng mong muốn (VNĐ)</label>
+                <input type="number" id="salary" value="28000000">
+            </div>
+            <div class="input-group">
+                <label>Chi phí tại HN/HCM (VNĐ)</label>
+                <input type="number" id="otherCost" value="15000000">
+            </div>
+        </div>
+
+        <button class="btn-glow" onclick="analyzeData()">PHÂN TÍCH</button>
+
+        <div id="insight-terminal">
+            <div class="insight-header">
+                <i class="fa-solid fa-robot"></i> NOVA Strategic Insight
+            </div>
+            <div id="insight-text" class="insight-content"></div>
+            
+            <div class="metric-item">
+                <div class="metric-label"><span>Tỷ lệ tích lũy / Thu nhập</span> <span id="save-percent">0%</span></div>
+                <div class="metric-bar"><div id="bar-save" class="metric-fill"></div></div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label"><span>Chỉ số Work-Life Balance (Đà Nẵng)</span> <span>95%</span></div>
+                <div class="metric-bar"><div id="bar-wlb" class="metric-fill" style="width: 95%; background: #0ea5e9;"></div></div>
+            </div>
+        </div>
+
+        <div class="stat-row">
+            <div class="stat-box">
+                <i class="fa-solid fa-house-user"></i>
+                <label style="font-size:10px">Phí sinh hoạt ĐN</label>
+                <span id="dnCost">--</span>
+            </div>
+            <div class="stat-box">
+<i class="fa-solid fa-plus-circle" style="color:var(--accent)"></i>
+                <label style="font-size:10px">Dư thêm mỗi tháng</label>
+                <span id="extra">--</span>
+            </div>
+            <div class="stat-box">
+                <i class="fa-solid fa-leaf" style="color:#f59e0b"></i>
+                <label style="font-size:10px">AQI Trung bình</label>
+                <span style="color:var(--accent)">32</span>
+            </div>
+        </div>
+
+        <div style="height:250px; margin-top:20px; background:rgba(0,0,0,0.2); border-radius:20px; padding:15px">
+            <canvas id="mainChart"></canvas>
+        </div>
+
+        <h4 style="margin:25px 0 10px"><i class="fa-solid fa-microchip"></i> Hệ sinh thái IT Đà Nẵng</h4>
+        <div class="tags">
+            <div class="tag"><i class="fa-solid fa-code" style="color:#f97316"></i> FPT Software</div>
+            <div class="tag"><i class="fa-solid fa-car" style="color:#0ea5e9"></i> LG VS DCV</div>
+            <div class="tag"><i class="fa-solid fa-shield-halved" style="color:#10b981"></i> Enclave</div>
+            <div class="tag"><i class="fa-solid fa-server" style="color:#8b5cf6"></i> Axon Active</div>
+            <div class="tag"><i class="fa-solid fa-cloud" style="color:#ec4899"></i> NashTech</div>
+        </div>
+    </div>
+
+    <div class="card chat-container">
+        <h3 style="margin-top:0"><i class="fa-solid fa-comment-dots"></i> TRỢ LÝ NOVA</h3>
+        <div class="messages" id="chatFlow">
+            <div class="bubble bot">
+                Hệ thống <b>NOVA 2026</b> xin chào! Tôi đã cập nhật dữ liệu lương và thị trường IT mới nhất tại Đà Nẵng. Bạn cần tôi tư vấn điều gì?
+            </div>
+        </div>
+        <div style="position:relative; display:flex; gap:10px">
+            <input id="userInput" placeholder="Hỏi về lương, công ty, đời sống..." onkeypress="if(event.key==='Enter') handleChat()">
+            <button onclick="handleChat()" style="width:50px; height:48px; border-radius:12px; border:none; background:var(--primary); color:white; cursor:pointer">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Real-time Clock
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString('vi-VN');
+    }, 1000);
+
+    // Chart.js Setup
+    const ctx = document.getElementById('mainChart').getContext('2d');
+    const myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Đà Nẵng', 'Hà Nội', 'TP. HCM'],
+            datasets: [{
+                label: 'Khả năng tiết kiệm (Triệu VNĐ)',
+                data: [0, 0, 0],
+                backgroundColor: ['#10b981', '#6366f1', '#f59e0b'],
+                borderRadius: 10,
+                barThickness: 40
+            }]
+        },
+options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+            }
+        }
+    });
+
+    // Logic Phân tích & Insight
+    function analyzeData() {
+        const salary = Number(document.getElementById('salary').value);
+        const otherCost = Number(document.getElementById('otherCost').value);
+        const dnCost = 9000000; // Mức sống TB tại ĐN 2026 cho 1 IT-er
+
+        const extra = (otherCost - dnCost);
+        const savingsDN = (salary - dnCost);
+        const savingsOther = (salary - otherCost);
+        const savePercent = Math.min(((savingsDN / salary) * 100), 100).toFixed(0);
+
+        // Hiển thị khung terminal
+        document.getElementById('insight-terminal').style.display = 'block';
+        document.getElementById('extra').innerText = `${(extra/1000000).toFixed(1)}Tr`;
+        document.getElementById('dnCost').innerText = `${(dnCost/1000000).toFixed(1)}Tr`;
+
+        // Hiệu ứng Typewriter cho Insight
+        const insightText = document.getElementById('insight-text');
+        const message = `Dựa trên dữ liệu: Mỗi tháng bạn sẽ dư thêm <b>${extra.toLocaleString()}đ</b> khi làm việc tại Đà Nẵng. <br><br>🔥 <b>Chiến lược:</b> Với số tiền này, bạn có thể trả góp một căn hộ Ocean-View hoặc nâng cấp bộ gear cực khủng. Chỉ số WLB 95% khẳng định bạn sẽ có thêm ít nhất 2 giờ mỗi ngày cho bản thân thay vì kẹt xe.`;
+        
+        insightText.innerHTML = ""; 
+        let i = 0;
+        function typeWriter() {
+            if (i < message.length) {
+                if(message.charAt(i) === '<') { 
+                    let tagEnd = message.indexOf('>', i);
+                    insightText.innerHTML += message.substring(i, tagEnd + 1);
+                    i = tagEnd + 1;
+                } else {
+                    insightText.innerHTML += message.charAt(i);
+                    i++;
+                }
+                setTimeout(typeWriter, 10);
+            }
+        }
+        typeWriter();
+
+        // Chạy thanh progress bar
+        setTimeout(() => {
+            document.getElementById('bar-save').style.width = savePercent + "%";
+            document.getElementById('save-percent').innerText = savePercent + "%";
+        }, 200);
+
+        // Update Chart
+        myChart.data.datasets[0].data = [savingsDN/1000000, savingsOther/1000000, (savingsOther*0.95)/1000000];
+        myChart.update();
+    }
+
+    // AI Chat Logic
+    function handleChat() {
+        const input = document.getElementById('userInput');
+        const chatFlow = document.getElementById('chatFlow');
+        const val = input.value.trim();
+if(!val) return;
+
+        // User Message
+        const userMsg = document.createElement('div');
+        userMsg.className = 'bubble user';
+        userMsg.innerText = val;
+        chatFlow.appendChild(userMsg);
+        input.value = '';
+
+        // Bot Response
+        setTimeout(() => {
+            const botMsg = document.createElement('div');
+            botMsg.className = 'bubble bot';
+            
+            let reply = "Tôi đang phân tích yêu cầu của bạn...";
+            const lowVal = val.toLowerCase();
+            if(lowVal.includes("lương")) reply = "Năm 2026, Senior IT tại Đà Nẵng có dải lương từ 45 - 75 triệu VNĐ. Các vị trí AI Engineer có thể chạm mốc 100 triệu.";
+            else if(lowVal.includes("công ty")) reply = "Bạn nên nhắm vào các Hub lớn: FPT Software (Hòa Lạc Đà Nẵng), LG VS DCV (tòa nhà Indochina) hoặc các công ty Nhật tại bãi biển Mỹ Khê.";
+            else if(lowVal.includes("đời sống") || lowVal.includes("ăn")) reply = "Đà Nẵng 2026 vẫn là thiên đường ẩm thực. Chi phí ăn uống chỉ bằng 70% so với Quận 1 TP.HCM.";
+            else reply = "Đà Nẵng đang là 'Silicon Valley' của Việt Nam với chính sách miễn thuế cho nhân tài công nghệ cao đấy!";
+
+            botMsg.innerHTML = reply;
+            chatFlow.appendChild(botMsg);
+            chatFlow.scrollTop = chatFlow.scrollHeight;
+        }, 600);
+    }
+</script>
+
+</body>
+</html>
